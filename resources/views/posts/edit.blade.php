@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container">
-<form action="/p/{{$post->id}}" method="post">
+<form action="/p/{{$post->id}}" method="post" enctype="multipart/form-data">
 @csrf
 @method('PATCH')
        
@@ -30,6 +30,12 @@
                         <strong>{{ $message }}</strong>
                     </span>
                 @enderror
+            </div>
+
+            <label for="image" >Image:</label>
+
+            <div class="mb-2">
+            <input type="file" id="image" name="image" accept="image/*">
             </div>
 
         <div class=""><button class="btn btn-primary">Edit post</button></div>
