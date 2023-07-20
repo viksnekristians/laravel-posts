@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Post;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Redis;
 
 class PostsController extends Controller
 {
