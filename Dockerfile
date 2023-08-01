@@ -1,20 +1,37 @@
-FROM php:7.4 as php
+FROM php:7.4-apache as php
 
-RUN apt-get update -y
-RUN apt-get install -y unzip libpq-dev libcurl4-gnutls-dev
-RUN docker-php-ext-install pdo pdo_mysql bcmath
+# Install dependencies
+RUN apt-get update && \
+    apt-get install -y \
+    libzip-dev \
+    zip
 
-RUN pecl install -o -f redis \
-    && rm -rf /tmp/pear \
-    && docker-php-ext-enable redis
+# Enable mod_rewrite
+RUN a2enmod rewrite
 
-WORKDIR /var/www
-COPY . .
+# Install PHP extensions
+RUN docker-php-ext-install pdo_mysql zip
 
-COPY --from=composer:2.3.5 /usr/bin/composer /usr/bin/composer
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+
+# Copy the application code
+COPY . /var/www/html
+
+# Set the working directory
+WORKDIR /var/www/html
+
+# Install composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Install project dependencies
+RUN composer install
+
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 ENV PORT=8000
-RUN echo "hey"
 RUN chmod +x Docker/entrypoint.sh
 ENTRYPOINT [ "Docker/entrypoint.sh" ]
 
